@@ -1,0 +1,107 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Подключение к принтеру FlashForge",
+        "description": "Укажите сетевой адрес принтера и учётные данные, которые отображаются на сенсорном экране в разделе **Настройки → Сеть → Режим LAN**.",
+        "data": {
+          "host": "Хост / IP-адрес",
+          "serial_number": "Серийный номер",
+          "check_code": "Код проверки",
+          "name": "Название (необязательно)"
+        }
+      },
+      "reconfigure": {
+        "title": "Изменение принтера FlashForge",
+        "data": {
+          "host": "Хост / IP-адрес",
+          "serial_number": "Серийный номер",
+          "check_code": "Код проверки",
+          "name": "Название (необязательно)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удалось связаться с принтером. Проверьте IP-адрес, питание и режим LAN.",
+      "invalid_auth": "Принтер отклонил серийный номер или код проверки.",
+      "unknown": "Непредвиденная ошибка при обращении к принтеру. Подробности в журнале Home Assistant."
+    },
+    "abort": {
+      "already_configured": "Этот принтер уже настроен.",
+      "reconfigure_successful": "Параметры подключения обновлены."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Параметры FlashForge",
+        "data": {
+          "check_code": "Код проверки (оставьте пустым, чтобы не менять)",
+          "scan_interval": "Интервал опроса (секунды)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "machine_state": {
+        "name": "Состояние",
+        "state": {
+          "ready": "Готов",
+          "busy": "Занят",
+          "calibrating": "Калибровка",
+          "error": "Ошибка",
+          "heating": "Нагрев",
+          "printing": "Печать",
+          "pausing": "Пауза (приостановка)",
+          "paused": "Пауза",
+          "cancelled": "Отменено",
+          "completed": "Завершено",
+          "unknown": "Неизвестно"
+        }
+      },
+      "print_progress": { "name": "Прогресс печати" },
+      "current_layer": { "name": "Текущий слой" },
+      "total_layers": { "name": "Всего слоёв" },
+      "remaining_time": { "name": "Осталось времени" },
+      "print_eta": { "name": "Окончание печати" },
+      "print_file": { "name": "Файл печати" },
+      "nozzle_temperature": { "name": "Температура сопла" },
+      "nozzle_target_temperature": { "name": "Целевая температура сопла" },
+      "bed_temperature": { "name": "Температура стола" },
+      "bed_target_temperature": { "name": "Целевая температура стола" },
+      "chamber_temperature": { "name": "Температура камеры" },
+      "estimated_filament_length": { "name": "Расход филамента (длина)" },
+      "estimated_filament_weight": { "name": "Расход филамента (вес)" },
+      "filament_type": { "name": "Тип филамента" },
+      "print_speed": { "name": "Скорость печати" },
+      "print_duration": { "name": "Длительность печати" },
+      "total_print_time": { "name": "Общее время печати" },
+      "total_filament_used": { "name": "Всего израсходовано филамента" },
+      "tvoc": { "name": "Качество воздуха (TVOC)" },
+      "error_code": { "name": "Код ошибки" }
+    },
+    "binary_sensor": {
+      "printing": { "name": "Идёт печать" },
+      "paused": { "name": "Пауза" },
+      "door": { "name": "Дверца" },
+      "problem": { "name": "Проблема" },
+      "camera_available": { "name": "Камера доступна" }
+    },
+    "button": {
+      "pause_print": { "name": "Пауза" },
+      "resume_print": { "name": "Продолжить печать" },
+      "cancel_print": { "name": "Отменить печать" },
+      "clear_platform": { "name": "Очистить платформу" },
+      "home_axes": { "name": "Парковка осей" },
+      "refresh_camera": { "name": "Обновить видеопоток" }
+    },
+    "switch": {
+      "led": { "name": "Подсветка" },
+      "internal_filtration": { "name": "Фильтрация" }
+    },
+    "camera": {
+      "camera": { "name": "Камера" }
+    }
+  }
+}

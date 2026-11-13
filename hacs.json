@@ -1,0 +1,7 @@
+{
+  "name": "FlashForge 3D Printer",
+  "content_in_root": false,
+  "render_readme": true,
+  "homeassistant": "2026.1.0",
+  "zip_release": false
+}

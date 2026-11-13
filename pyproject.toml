@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "B", "SIM", "ARG", "RUF", "BLE"]
+# Home Assistant hands these callables fixed signatures, so unused parameters
+# in platform setup and entity hooks cannot be removed without breaking them.
+ignore = [
+    "ARG001", # unused function argument (platform setup: hass)
+    "ARG002", # unused method argument (entity hooks: kwargs, width, height)
+    "ARG004", # unused staticmethod argument
+    "ARG005", # unused lambda argument (description defaults)
+    "RUF012", # mutable class attrs without ClassVar (HA entity pattern)
+    "SIM108", # ternary preference: explicit if/else is clearer here
+]
+
+[tool.ruff.lint.per-file-ignores]
+"custom_components/flashforge_ac5/*.py" = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
