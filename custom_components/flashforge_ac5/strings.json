@@ -68,6 +68,8 @@
       "print_file": { "name": "Printing file" },
       "nozzle_temperature": { "name": "Nozzle temperature" },
       "nozzle_target_temperature": { "name": "Nozzle target temperature" },
+      "nozzle_tool_temperature": { "name": "Nozzle {number} temperature" },
+      "nozzle_tool_target_temperature": { "name": "Nozzle {number} target temperature" },
       "bed_temperature": { "name": "Bed temperature" },
       "bed_target_temperature": { "name": "Bed target temperature" },
       "chamber_temperature": { "name": "Chamber temperature" },

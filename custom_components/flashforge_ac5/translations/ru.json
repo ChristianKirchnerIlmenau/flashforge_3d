@@ -68,6 +68,8 @@
       "print_file": { "name": "Файл печати" },
       "nozzle_temperature": { "name": "Температура сопла" },
       "nozzle_target_temperature": { "name": "Целевая температура сопла" },
+      "nozzle_tool_temperature": { "name": "Температура сопла {number}" },
+      "nozzle_tool_target_temperature": { "name": "Целевая температура сопла {number}" },
       "bed_temperature": { "name": "Температура стола" },
       "bed_target_temperature": { "name": "Целевая температура стола" },
       "chamber_temperature": { "name": "Температура камеры" },

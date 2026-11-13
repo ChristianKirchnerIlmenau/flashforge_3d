@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
+from flashforge.models import FFMachineInfo
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -48,6 +49,85 @@ def _eta(snapshot: PrinterSnapshot) -> datetime | None:
     if completion is None:
         return None
     return completion.astimezone()
+
+
+def _tool_temperature(
+    index: int, *, target: bool
+) -> Callable[[PrinterSnapshot], float | None]:
+    """Return a reader for one tool's temperature.
+
+    The array length is checked on every read instead of being baked in: the
+    firmware can report fewer tools than ``nozzle_count`` claims, and index
+    errors inside ``native_value`` would only be swallowed silently.
+    """
+
+    def _read(snapshot: PrinterSnapshot) -> float | None:
+        temps = snapshot.info.tool_temps
+        if index >= len(temps):
+            return None
+        temperature = temps[index]
+        return round(temperature.set if target else temperature.current, 1)
+
+    return _read
+
+
+def _tool_available(index: int) -> Callable[[PrinterSnapshot], bool]:
+    """Return an availability check for one tool."""
+
+    def _check(snapshot: PrinterSnapshot) -> bool:
+        return index < len(snapshot.info.tool_temps)
+
+    return _check
+
+
+def _tool_sensors(info: FFMachineInfo) -> list[FlashForgeSensorDescription]:
+    """Build a current/target temperature pair for every tool nozzle.
+
+    The entity count follows ``tool_temps`` itself rather than ``nozzle_count``
+    or ``is_creator5``: the model flags come from a name heuristic that a user
+    rename breaks, and ``nozzleCnt`` can advertise more slots than the firmware
+    actually reports, which would leave permanently unavailable entities.
+
+    Single-nozzle printers get an empty list here and keep the scalar
+    ``nozzle_temperature`` pair, whose ``unique_id`` already exists in the
+    registry.
+    """
+    count = len(info.tool_temps)
+    if count <= 1:
+        return []
+
+    descriptions: list[FlashForgeSensorDescription] = []
+    for index in range(count):
+        number = index + 1
+        placeholders = {"number": str(number)}
+        descriptions.append(
+            FlashForgeSensorDescription(
+                key=f"nozzle_{number}_temperature",
+                translation_key="nozzle_tool_temperature",
+                translation_placeholders=placeholders,
+                device_class=SensorDeviceClass.TEMPERATURE,
+                native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                state_class=SensorStateClass.MEASUREMENT,
+                value_fn=_tool_temperature(index, target=False),
+                available_fn=_tool_available(index),
+                icon="mdi:thermometer-high",
+            )
+        )
+        descriptions.append(
+            FlashForgeSensorDescription(
+                key=f"nozzle_{number}_target_temperature",
+                translation_key="nozzle_tool_target_temperature",
+                translation_placeholders=placeholders,
+                device_class=SensorDeviceClass.TEMPERATURE,
+                native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                state_class=SensorStateClass.MEASUREMENT,
+                value_fn=_tool_temperature(index, target=True),
+                available_fn=_tool_available(index),
+                icon="mdi:thermometer-chevron-up",
+            )
+        )
+
+    return descriptions
 
 
 SENSORS: tuple[FlashForgeSensorDescription, ...] = (
@@ -119,6 +199,12 @@ SENSORS: tuple[FlashForgeSensorDescription, ...] = (
         available_fn=lambda s: bool(s.info.print_file_name),
         icon="mdi:file-document-outline",
     ),
+    # Scalar nozzle sensors read ``extruder``, which the library fills from
+    # ``rightTemp``. Creator 5 firmware leaves those fields empty and reports
+    # per-tool arrays instead, so the entity is hidden as soon as more than one
+    # tool is reported, in favour of the generated ``nozzle_<n>_temperature``
+    # sensors. Both rules key off ``tool_temps``, so exactly one of the two
+    # entity families is exposed per printer.
     FlashForgeSensorDescription(
         key="nozzle_temperature",
         translation_key="nozzle_temperature",
@@ -126,6 +212,7 @@ SENSORS: tuple[FlashForgeSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda s: round(s.info.extruder.current, 1),
+        available_fn=lambda s: len(s.info.tool_temps) <= 1,
         icon="mdi:thermometer-high",
     ),
     FlashForgeSensorDescription(
@@ -135,6 +222,7 @@ SENSORS: tuple[FlashForgeSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda s: round(s.info.extruder.set, 1),
+        available_fn=lambda s: len(s.info.tool_temps) <= 1,
         icon="mdi:thermometer-chevron-up",
     ),
     FlashForgeSensorDescription(
@@ -250,8 +338,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
     coordinator: FlashForgeDataUpdateCoordinator = entry.runtime_data.coordinator
+
+    # The first poll has already completed, so the tool list is known here and
+    # the per-nozzle entities can be created with the right count.
+    descriptions = [*SENSORS, *_tool_sensors(coordinator.data.info)]
     async_add_entities(
-        FlashForgeSensor(coordinator, entry, description) for description in SENSORS
+        FlashForgeSensor(coordinator, entry, description) for description in descriptions
     )
 
 
