@@ -136,6 +136,15 @@ Die Integration bietet Texte auf Deutsch, Englisch und Russisch.
 Über **Ändern** lassen sich IP-Adresse und Zugangsdaten ändern, ohne die
 Integration zu entfernen. Entitäten und deren Verlauf bleiben erhalten.
 
+### Hinweis zu FlashPrint und OrcaSlicer
+
+Beim Adventurer 5M mit Firmware 5.1.7-2.2.3 funktionierte FlashPrint im Modus
+**Nur LAN** nicht: Die Übertragung wurde mit 100 % angezeigt, die Datei erschien
+aber nicht auf dem Drucker und der Druck startete nicht. Mit OrcaSlicer
+funktionierten Übertragung und Druck im LAN-Modus; die Druckdetails wurden auch
+in Home Assistant angezeigt. Bei diesem Fehler kann ein Wechsel zu OrcaSlicer
+helfen. Das Verhalten kann je nach FlashPrint-Version und Druckermodell variieren.
+
 ## Voraussetzungen
 
 * Home Assistant 2026.1 oder neuer
