@@ -27,13 +27,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .api import CAMERA_PORT
 from .coordinator import FlashForgeDataUpdateCoordinator
 from .entity import FlashForgeEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-CAMERA_PORT = 8080
-STREAM_PATH = "/?action=stream"
 SNAPSHOT_PATH = "/?action=snapshot"
 
 # The printer abandons requests slowly, so both the connect and the read phase
@@ -166,7 +165,9 @@ class _MjpegFrameReader:
         """Read the multipart stream and publish every complete frame."""
         buffer = bytearray()
         try:
-            async with self._session.get(self._url, timeout=STREAM_TIMEOUT) as response:
+            async with self._session.get(
+                self._url, timeout=STREAM_TIMEOUT, allow_redirects=False
+            ) as response:
                 if response.status != 200:
                     _LOGGER.debug("Camera stream returned HTTP %s", response.status)
                     return
@@ -279,7 +280,7 @@ class FlashForgeCamera(FlashForgeEntity, Camera):
     def _stream_url(self) -> str:
         """Return the best known MJPEG URL for this printer."""
         api = self.runtime_data.api
-        return api.cached_camera_url() or f"http://{api.host}:{CAMERA_PORT}{STREAM_PATH}"
+        return api.cached_camera_url() or api.camera_stream_url
 
     @property
     def _snapshot_url(self) -> str:
@@ -400,7 +401,9 @@ class FlashForgeCamera(FlashForgeEntity, Camera):
         """Fetch a single JPEG from the snapshot endpoint, if there is one."""
         session = async_get_clientsession(self.hass)
         try:
-            async with session.get(self._snapshot_url, timeout=SNAPSHOT_TIMEOUT) as response:
+            async with session.get(
+                self._snapshot_url, timeout=SNAPSHOT_TIMEOUT, allow_redirects=False
+            ) as response:
                 if response.status != 200:
                     return None
                 data = await response.read()

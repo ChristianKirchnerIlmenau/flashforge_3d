@@ -15,7 +15,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from urllib.parse import urlsplit
 
+import aiohttp
 from flashforge import FlashForgeClient
 from flashforge.exceptions import FlashForgeError
 from flashforge.models import FFMachineInfo
@@ -26,6 +28,8 @@ _LOGGER = logging.getLogger(__name__)
 # six seconds (HEAD then GET, three seconds each) and the printer's HTTP server
 # is single threaded, so retrying it in the polling loop starves the video feed.
 CAMERA_PROBE_RETRY_INTERVAL = 600.0  # seconds
+CAMERA_PORT = 8080
+STREAM_PATH = "/?action=stream"
 
 
 class FlashForgeApiError(Exception):
@@ -59,6 +63,7 @@ class FlashForgeApi:
         self._camera_url: str = ""
         self._camera_probe_lock = asyncio.Lock()
         self._camera_probe_not_before: float = 0.0
+        self._rejected_camera_url: str = ""
 
     @property
     def client(self) -> FlashForgeClient:
@@ -140,6 +145,48 @@ class FlashForgeApi:
         """Return the camera URL discovered so far (may be empty)."""
         return self._camera_url
 
+    @property
+    def camera_stream_url(self) -> str:
+        """Return the trusted OEM camera endpoint."""
+        return f"http://{self.host}:{CAMERA_PORT}{STREAM_PATH}"
+
+    def _is_trusted_camera_url(self, url: str) -> bool:
+        try:
+            candidate = urlsplit(url)
+            expected = urlsplit(self.camera_stream_url)
+            return (
+                candidate.scheme == "http"
+                and candidate.hostname == expected.hostname
+                and candidate.port == CAMERA_PORT
+                and candidate.username is None
+                and candidate.password is None
+                and candidate.path == "/"
+                and candidate.query == "action=stream"
+                and not candidate.fragment
+            )
+        except ValueError:
+            return False
+
+    async def _async_probe_camera(self) -> bool:
+        """Probe the fixed camera endpoint without following redirects."""
+        timeout = aiohttp.ClientTimeout(total=3)
+        async with aiohttp.ClientSession() as session:
+            for method in (session.head, session.get):
+                try:
+                    async with method(
+                        self.camera_stream_url, timeout=timeout, allow_redirects=False
+                    ) as response:
+                        content_type = response.headers.get("Content-Type", "").lower()
+                        if response.status == 200 and (
+                            not content_type
+                            or "multipart" in content_type
+                            or "video/x-mjpeg" in content_type
+                        ):
+                            return True
+                except (aiohttp.ClientError, TimeoutError, OSError) as err:
+                    _LOGGER.debug("Camera probe failed: %s", err)
+        return False
+
     async def async_ensure_camera_enabled(self) -> bool:
         """Ask the printer to power its camera on, if it supports that.
 
@@ -167,10 +214,16 @@ class FlashForgeApi:
         it.
         """
         if info is not None and info.camera_stream_url:
-            self._camera_url = info.camera_stream_url
-            # A URL reported by the firmware is authoritative again.
-            self._camera_probe_not_before = 0.0
-            return self._camera_url
+            if self._is_trusted_camera_url(info.camera_stream_url):
+                self._camera_url = self.camera_stream_url
+                self._camera_probe_not_before = 0.0
+                self._rejected_camera_url = ""
+                return self._camera_url
+            if info.camera_stream_url != self._rejected_camera_url:
+                _LOGGER.warning(
+                    "Ignoring untrusted camera URL reported by the printer at %s", self.host
+                )
+                self._rejected_camera_url = info.camera_stream_url
 
         if self._camera_url and not force:
             return self._camera_url
@@ -192,15 +245,9 @@ class FlashForgeApi:
             if not force and time.monotonic() < self._camera_probe_not_before:
                 return self._camera_url
 
-            try:
-                detected = await self._client.detect_camera_stream()
-            except Exception as err:  # noqa: BLE001 - probing must never raise
-                _LOGGER.debug("Camera probe failed: %s", err)
-                detected = ""
-
-            if detected:
-                self._camera_url = detected
-                _LOGGER.debug("Detected camera stream at %s", detected)
+            if await self._async_probe_camera():
+                self._camera_url = self.camera_stream_url
+                _LOGGER.debug("Detected camera stream at %s", self._camera_url)
             elif not force:
                 self._camera_probe_not_before = (
                     time.monotonic() + CAMERA_PROBE_RETRY_INTERVAL
