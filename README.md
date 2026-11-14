@@ -1,150 +1,172 @@
-# FlashForge 3D Printer — интеграция для Home Assistant
+# FlashForge 3D Printer – Integration für Home Assistant
 
-Пользовательская интеграция для 3D-принтеров FlashForge (Adventurer 5M / 5M Pro, AD5X, Creator 5 / Creator 5 Pro).
-Работает локально, без облака: опрос состояния, управление печатью и видеопоток с камеры принтера.
+> **Hinweis: Dieses Repository ist ein Fork** von
+> [kruzhkov/flashforge_3d](https://github.com/kruzhkov/flashforge_3d).
+> Es wird unabhängig vom ursprünglichen Repository weiterentwickelt.
 
-<img src="example.png" width="500" alt="Screen">
+Benutzerdefinierte Integration für FlashForge-3D-Drucker (Adventurer 5M / 5M Pro, AD5X, Creator 5 / Creator 5 Pro).
+Sie arbeitet lokal ohne Cloud und bietet Statusabfragen, Drucksteuerung und den Videostream der Druckerkamera.
 
-## Возможности
+<img src="example.png" width="500" alt="Beispielansicht">
 
-**Показания датчиков и прогресс печати**
+## Sicherheit und Hardening
 
-| Сущность | Тип | Описание |
+Dieser Fork enthält eine Absicherung gegen Server-Side Request Forgery (SSRF) bei der Kamera:
+
+* Als Stream-URL wird nur die HTTP-Adresse des konfigurierten Druckers auf Port 8080 mit dem Pfad `/?action=stream` akzeptiert. Andere vom Drucker gemeldete URLs werden ignoriert.
+* HTTP-Weiterleitungen werden bei der Kameraerkennung, beim Stream und beim Abrufen von Einzelbildern nicht verfolgt.
+
+Die Kamera kommuniziert weiterhin über unverschlüsseltes HTTP im lokalen Netzwerk.
+
+## Funktionen
+
+**Sensorwerte und Druckfortschritt**
+
+| Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| `sensor.status` | enum | Состояние принтера: `ready`, `printing`, `paused`, `error`, … |
-| `sensor.print_progress` | % | Прогресс текущей печати |
-| `sensor.current_layer` / `sensor.total_layers` | число | Текущий и общий слой |
-| `sensor.remaining_time` | мин | Осталось времени по оценке прошивки |
-| `sensor.estimated_finish` | timestamp | Расчётное время окончания печати |
-| `sensor.printing_file` | текст | Имя печатаемого файла |
-| `sensor.nozzle_temperature` / `nozzle_target_temperature` | °C | Температура и цель сопла (модели с одним соплом) |
-| `sensor.nozzle_<n>_temperature` / `nozzle_<n>_target_temperature` | °C | Температура и цель каждого сопла (многосопловые модели) |
-| `sensor.bed_temperature` / `bed_target_temperature` | °C | Температура и цель стола |
-| `sensor.chamber_temperature` | °C | Температура камеры (только модели с датчиком) |
-| `sensor.filament_used_length` / `filament_used_weight` | м / г | Расход филамента на текущую печать |
-| `sensor.total_print_time` / `total_filament_used` | ч / м | Накопленная статистика |
+| `sensor.status` | enum | Druckerstatus: `ready`, `printing`, `paused`, `error`, … |
+| `sensor.print_progress` | % | Fortschritt des aktuellen Drucks |
+| `sensor.current_layer` / `sensor.total_layers` | Zahl | Aktuelle und gesamte Schichtzahl |
+| `sensor.remaining_time` | min | Verbleibende Zeit laut Firmware |
+| `sensor.estimated_finish` | timestamp | Geschätzter Fertigstellungszeitpunkt |
+| `sensor.printing_file` | Text | Name der gedruckten Datei |
+| `sensor.nozzle_temperature` / `nozzle_target_temperature` | °C | Ist- und Solltemperatur der Düse (Modelle mit einer Düse) |
+| `sensor.nozzle_<n>_temperature` / `nozzle_<n>_target_temperature` | °C | Ist- und Solltemperatur jeder Düse (Modelle mit mehreren Düsen) |
+| `sensor.bed_temperature` / `bed_target_temperature` | °C | Ist- und Solltemperatur des Druckbetts |
+| `sensor.chamber_temperature` | °C | Temperatur des Bauraums (nur Modelle mit Sensor) |
+| `sensor.filament_used_length` / `filament_used_weight` | m / g | Filamentverbrauch des aktuellen Drucks |
+| `sensor.total_print_time` / `total_filament_used` | h / m | Kumulierte Statistik |
 | `sensor.air_quality` | µg/m³ | TVOC |
-| `binary_sensor.printing`, `paused`, `problem`, `door` | бинарные | Быстрые триггеры для автоматизаций |
+| `binary_sensor.printing`, `paused`, `problem`, `door` | binär | Schnelle Auslöser für Automatisierungen |
 
-**Сопла на многосопловых моделях (Creator 5 / Creator 5 Pro)**
+**Düsen bei Modellen mit mehreren Düsen (Creator 5 / Creator 5 Pro)**
 
-Прошивка Creator 5 не заполняет поля `rightTemp` / `rightTargetTemp`, из которых
-строится скалярное сопло, а отдаёт массивы `nozzleTemps` / `nozzleTargetTemps` —
-по элементу на инструмент. Поэтому для таких моделей интеграция создаёт пару
-сущностей на каждое сопло:
+Die Firmware des Creator 5 füllt die Felder `rightTemp` / `rightTargetTemp`,
+aus denen die einzelne Düsenanzeige gebildet wird, nicht aus. Stattdessen liefert
+sie die Arrays `nozzleTemps` / `nozzleTargetTemps` – ein Element pro Werkzeug.
+Deshalb erstellt die Integration für diese Modelle ein Entitätenpaar pro Düse:
 
-| Сущность | Тип | Описание |
+| Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| `sensor.nozzle_1_temperature` | °C | Фактическая температура сопла №1 |
-| `sensor.nozzle_1_target_temperature` | °C | Целевая температура сопла №1 |
-| … | °C | Аналогично для остальных сопел |
+| `sensor.nozzle_1_temperature` | °C | Isttemperatur der Düse Nr. 1 |
+| `sensor.nozzle_1_target_temperature` | °C | Solltemperatur der Düse Nr. 1 |
+| … | °C | Entsprechend für die übrigen Düsen |
 
-Количество сущностей определяется по фактической длине массива температур от
-прошивки, а не по флагу модели и не по полю `nozzleCnt`. Так исключаются две
-ошибки: флаг модели вычисляется по имени принтера и ломается при переименовании,
-а `nozzleCnt` может сообщать больше слотов, чем реально отдаёт прошивка, — тогда
-часть сущностей навсегда осталась бы недоступной. На Creator 5 это даёт четыре
-пары сущностей.
+Die Anzahl der Entitäten wird anhand der tatsächlichen Länge des von der
+Firmware gelieferten Temperatur-Arrays bestimmt, nicht anhand des Modellflags
+oder des Felds `nozzleCnt`. Das verhindert zwei Fehler: Das Modellflag wird aus
+dem Druckernamen abgeleitet und kann beim Umbenennen fehlschlagen. Außerdem kann
+`nozzleCnt` mehr Steckplätze melden, als die Firmware tatsächlich liefert –
+einige Entitäten wären dann dauerhaft nicht verfügbar. Beim Creator 5 ergibt
+dies vier Entitätenpaare.
 
-Скалярные `sensor.nozzle_temperature` и `sensor.nozzle_target_temperature`
-показываются только когда принтер сообщает не более одного инструмента: на
-многосопловых моделях они всегда отдавали бы пустое значение. Оба правила
-опираются на один и тот же массив, поэтому всегда активен ровно один набор
-сущностей. На моделях с одним соплом поведение не изменилось.
+Die einzelnen Entitäten `sensor.nozzle_temperature` und
+`sensor.nozzle_target_temperature` werden nur angezeigt, wenn der Drucker
+höchstens ein Werkzeug meldet. Bei Modellen mit mehreren Düsen würden sie immer
+einen leeren Wert liefern. Beide Regeln basieren auf demselben Array, sodass
+immer genau ein Satz von Entitäten aktiv ist. Für Modelle mit einer Düse bleibt
+das Verhalten unverändert.
 
-`unique_id` сущности привязан к порядковому номеру инструмента, поэтому история
-и настройки сохраняются между перезапусками.
+Die `unique_id` einer Entität ist an die Reihenfolge des Werkzeugs gebunden,
+sodass Verlauf und Einstellungen zwischen Neustarts erhalten bleiben.
 
-**Видеопоток с камеры**
+**Kamera-Videostream**
 
-Камера принтера (MJPEG, порт 8080) публикуется как стандартная сущность `camera`.
-Поток отдаётся браузеру как есть, без перекодирования: интеграция не объявляет
-`CameraEntityFeature.STREAM`, поэтому Home Assistant не запускает `ffmpeg` и не
-превращает MJPEG в HLS. Задержка остаётся в пределах одного кадра, CPU не
-расходуется на транскодирование.
+Die Druckerkamera (MJPEG, Port 8080) wird als standardmäßige `camera`-Entität
+bereitgestellt. Der Stream wird unverändert und ohne Neukodierung an den
+Browser weitergegeben: Die Integration deklariert `CameraEntityFeature.STREAM`
+nicht, sodass Home Assistant weder `ffmpeg` startet noch MJPEG in HLS umwandelt.
+Die Verzögerung bleibt innerhalb eines Einzelbilds, und die CPU wird nicht durch
+Transkodierung belastet.
 
-Принтер обслуживает камеру одним потоком, поэтому интеграция держит ровно одно
-соединение с ней: все зрители (живой просмотр, миниатюра на дашборде,
-уведомления) получают кадры из общего читателя. Когда зрителей нет, соединение
-закрывается по тайм-ауту простоя.
+Der Drucker bedient die Kamera mit einem einzigen Thread. Deshalb hält die
+Integration genau eine Verbindung zur Kamera: Alle Betrachter (Liveansicht,
+Dashboard-Vorschaubild und Benachrichtigungen) erhalten Bilder über einen
+gemeinsamen Leser. Wenn keine Betrachter vorhanden sind, wird die Verbindung nach
+einer Leerlaufzeit geschlossen.
 
-URL потока берётся из ответа `/detail`. Если прошивка его не сообщает, адрес
-определяется однократной сетевой проверкой при настройке (кнопка «Обновить
-видеопоток» повторяет её вручную). Неудачная проверка кэшируется на 10 минут,
-чтобы не тормозить периодический опрос датчиков.
-Принимается только HTTP-адрес настроенного принтера на порту 8080 с путём
-`/?action=stream`; другие адреса игнорируются. Перенаправления при проверке,
-просмотре потока и получении снимка не поддерживаются.
+Die Stream-URL wird aus der Antwort von `/detail` übernommen, sofern sie den
+oben beschriebenen Sicherheitsvorgaben entspricht. Meldet die Firmware keine
+zulässige URL, wird die Adresse bei der Einrichtung einmalig durch eine
+Netzwerkprüfung ermittelt. Die Schaltfläche „Videostream aktualisieren“ wiederholt
+diese Prüfung manuell. Eine fehlgeschlagene Prüfung wird zehn Minuten lang
+zwischengespeichert, damit die regelmäßige Sensorabfrage nicht verzögert wird.
 
-**Управление**
+**Steuerung**
 
 * `button.pause_print`, `button.resume_print`, `button.cancel_print`
 * `button.clear_platform`, `button.home_axes`, `button.refresh_camera_stream`
-* `switch.light` (модели с подсветкой), `switch.filtration`, `switch.camera`
+* `switch.light` (Modelle mit Beleuchtung), `switch.filtration`, `switch.camera`
 
-## Установка
+## Installation
 
-### HACS (как пользовательский репозиторий)
+### HACS (als benutzerdefiniertes Repository)
 
-1. Настройки → Marketplace → **Пользовательские репозитории** (HACS → **Интеграции** → меню → **Пользовательские репозитории**).
-2. Добавьте URL этого репозитория, категория — *Integration*.
-3. Установите **FlashForge 3D Printer** и перезапустите Home Assistant.
+1. Öffne Einstellungen → Marketplace → **Benutzerdefinierte Repositories** (HACS → **Integrationen** → Menü → **Benutzerdefinierte Repositories**).
+2. Füge die URL dieses Forks hinzu: `https://github.com/ChristianKirchnerIlmenau/flashforge_3d`. Wähle die Kategorie *Integration*.
+3. Installiere **FlashForge 3D Printer** und starte Home Assistant neu.
 
-### Вручную
+### Manuell
 
-Скопируйте каталог `custom_components/flashforge_ac5` в
-`<конфигурация>/custom_components/flashforge_ac5` и перезапустите Home Assistant.
+Kopiere das Verzeichnis `custom_components/flashforge_ac5` nach
+`<Konfiguration>/custom_components/flashforge_ac5` und starte Home Assistant neu.
 
-## Настройка
+## Einrichtung
 
-1. **Настройки → Устройства и службы → Добавить интеграцию → FlashForge 3D Printer**.
-2. Заполните поля:
-   * **Хост / IP-адрес** — адрес принтера в локальной сети;
-   * **Серийный номер** — `Настройки → Сеть → Режим LAN` на экране принтера;
-   * **Код проверки** — оттуда же (обычно 8 символов).
-3. Дополнительные параметры доступны через **Настроить**: интервал опроса
-   (5–300 с, по умолчанию 20 с) и смена кода проверки.
+Die Integration bietet Texte auf Deutsch, Englisch und Russisch.
 
-Кнопка **Изменить** позволяет сменить IP-адрес и учётные данные без удаления
-интеграции — записи и история сущностей сохраняются.
+1. Öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen → FlashForge 3D Printer**.
+2. Fülle die Felder aus:
+   * **Host / IP-Adresse** – Adresse des Druckers im lokalen Netzwerk;
+   * **Seriennummer** – auf dem Druckerdisplay unter `Einstellungen → Netzwerk → LAN-Modus`;
+   * **Prüfcode** – ebenfalls dort zu finden (normalerweise acht Zeichen).
+3. Weitere Einstellungen sind über **Konfigurieren** verfügbar: das
+   Abfrageintervall (5–300 s, standardmäßig 20 s) und die Änderung des Prüfcodes.
 
-## Требования
+Über **Ändern** lassen sich IP-Adresse und Zugangsdaten ändern, ohne die
+Integration zu entfernen. Entitäten und deren Verlauf bleiben erhalten.
 
-* Home Assistant 2026.1 или новее
-* Принтер в режиме LAN, доступный из сети Home Assistant
-* Python-пакет [`flashforge-python-api`](https://github.com/GhostTypes/ff-5mp-api-py) — устанавливается автоматически
+## Voraussetzungen
 
-## Как это устроено
+* Home Assistant 2026.1 oder neuer
+* Drucker im LAN-Modus, der aus dem Netzwerk von Home Assistant erreichbar ist
+* Python-Paket [`flashforge-python-api`](https://github.com/GhostTypes/ff-5mp-api-py) – wird automatisch installiert
 
-```
+## Aufbau
+
+```text
 custom_components/flashforge_ac5/
-├── __init__.py       # setup/unload, runtime_data
-├── api.py            # обёртка над flashforge-python-api, типизированные ошибки
-├── coordinator.py    # DataUpdateCoordinator: один опрос — один согласованный снимок
+├── __init__.py       # Einrichtung/Entladen, runtime_data
+├── api.py            # Wrapper für flashforge-python-api, typisierte Fehler
+├── coordinator.py    # DataUpdateCoordinator: eine Abfrage – ein konsistenter Snapshot
 ├── models.py         # PrinterSnapshot
-├── entity.py         # базовый класс: устройство, идентификаторы, доступность
-├── config_flow.py    # первичная настройка, reconfigure и options
-├── sensor.py         # показания и прогресс
-├── binary_sensor.py  # печать, пауза, дверца, проблема
-├── camera.py         # MJPEG без перекодирования: один общий читатель кадров
-├── button.py         # команды печати и обслуживания
-└── switch.py         # подсветка и фильтрация
+├── entity.py         # Basisklasse: Gerät, Kennungen, Verfügbarkeit
+├── config_flow.py    # Ersteinrichtung, Neukonfiguration und Optionen
+├── sensor.py         # Sensorwerte und Fortschritt
+├── binary_sensor.py  # Drucken, Pause, Tür, Problem
+├── camera.py         # MJPEG ohne Neukodierung: ein gemeinsamer Bildleser
+├── button.py         # Druck- und Wartungsbefehle
+└── switch.py         # Beleuchtung und Filterung
 ```
 
-Все сущности читают данные из одного `PrinterSnapshot`, поэтому прогресс,
-номер слоя и время окончания в одном цикле опроса всегда согласованы между собой.
-Сетевые сбои превращаются в `UpdateFailed` и помечают сущности недоступными,
-не «замораживая» последние значения как актуальные.
+Alle Entitäten lesen ihre Daten aus demselben `PrinterSnapshot`. Dadurch sind
+Fortschritt, Schichtnummer und Endzeit innerhalb eines Abfragezyklus stets
+konsistent. Netzwerkfehler werden in `UpdateFailed` umgewandelt und markieren
+die Entitäten als nicht verfügbar, statt die letzten Werte als aktuell
+auszugeben.
 
-## Устранение неполадок
+## Fehlerbehebung
 
-* **«Принтер отклонил серийный номер или код проверки»** — сверьте значения в
-  меню LAN принтера; после обновления прошивки код может измениться.
-* **Сущности недоступны** — проверьте, что принтер включён и отвечает по HTTP на
-  порт 8898; при смене IP используйте «Изменить».
-* **Нет сущности камеры** — прошивка сообщает об отсутствии камеры; нажмите
-  «Обновить видеопоток» после включения камеры на экране принтера.
-* Отладочные сообщения: добавьте в `configuration.yaml`
+* **„Der Drucker hat die Seriennummer oder den Prüfcode abgelehnt“** – Prüfe die
+  Werte im LAN-Menü des Druckers. Nach einem Firmware-Update kann sich der
+  Prüfcode ändern.
+* **Entitäten sind nicht verfügbar** – Prüfe, ob der Drucker eingeschaltet ist
+  und über HTTP auf Port 8898 antwortet. Verwende bei einer Änderung der
+  IP-Adresse **Ändern**.
+* **Keine Kameraentität** – Die Firmware meldet, dass keine Kamera vorhanden
+  ist. Aktiviere die Kamera auf dem Druckerdisplay und drücke anschließend
+  „Videostream aktualisieren“.
+* Für Debugmeldungen ergänze die `configuration.yaml`:
 
   ```yaml
   logger:
@@ -153,7 +175,7 @@ custom_components/flashforge_ac5/
       flashforge: debug
   ```
 
-## Лицензия
+## Lizenz
 
-Код интеграции распространяется по лицензии MIT. Используемая библиотека
-`flashforge-python-api` также распространяется по MIT.
+Der Code der Integration steht unter der MIT-Lizenz. Auch die verwendete
+Bibliothek `flashforge-python-api` steht unter der MIT-Lizenz.

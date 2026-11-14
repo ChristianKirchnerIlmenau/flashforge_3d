@@ -1,0 +1,109 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mit FlashForge-Drucker verbinden",
+        "description": "Gib die Netzwerkadresse des Druckers und die Zugangsdaten ein, die auf seinem Touchscreen unter **Einstellungen → Netzwerk → LAN-Modus** angezeigt werden.",
+        "data": {
+          "host": "Host / IP-Adresse",
+          "serial_number": "Seriennummer",
+          "check_code": "Prüfcode",
+          "name": "Name (optional)"
+        }
+      },
+      "reconfigure": {
+        "title": "FlashForge-Drucker ändern",
+        "data": {
+          "host": "Host / IP-Adresse",
+          "serial_number": "Seriennummer",
+          "check_code": "Prüfcode",
+          "name": "Name (optional)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Der Drucker ist nicht erreichbar. Prüfe die IP-Adresse und ob der Drucker eingeschaltet ist und sich im LAN-Modus befindet.",
+      "invalid_auth": "Der Drucker hat die Seriennummer oder den Prüfcode abgelehnt.",
+      "unknown": "Bei der Kommunikation mit dem Drucker ist ein unerwarteter Fehler aufgetreten. Weitere Informationen findest du im Home-Assistant-Protokoll."
+    },
+    "abort": {
+      "already_configured": "Dieser Drucker ist bereits eingerichtet.",
+      "reconfigure_successful": "Die Verbindungsdaten wurden aktualisiert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "FlashForge-Optionen",
+        "data": {
+          "check_code": "Prüfcode (leer lassen, um den aktuellen Code beizubehalten)",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "machine_state": {
+        "name": "Status",
+        "state": {
+          "ready": "Bereit",
+          "busy": "Beschäftigt",
+          "calibrating": "Kalibrierung läuft",
+          "error": "Fehler",
+          "heating": "Heizt auf",
+          "printing": "Druckt",
+          "pausing": "Wird pausiert",
+          "paused": "Pausiert",
+          "cancelled": "Abgebrochen",
+          "completed": "Abgeschlossen",
+          "unknown": "Unbekannt"
+        }
+      },
+      "print_progress": { "name": "Druckfortschritt" },
+      "current_layer": { "name": "Aktuelle Schicht" },
+      "total_layers": { "name": "Schichten insgesamt" },
+      "remaining_time": { "name": "Verbleibende Zeit" },
+      "print_eta": { "name": "Geschätzte Fertigstellung" },
+      "print_file": { "name": "Druckdatei" },
+      "nozzle_temperature": { "name": "Düsentemperatur" },
+      "nozzle_target_temperature": { "name": "Düsen-Solltemperatur" },
+      "nozzle_tool_temperature": { "name": "Temperatur der Düse {number}" },
+      "nozzle_tool_target_temperature": { "name": "Solltemperatur der Düse {number}" },
+      "bed_temperature": { "name": "Druckbetttemperatur" },
+      "bed_target_temperature": { "name": "Druckbett-Solltemperatur" },
+      "chamber_temperature": { "name": "Bauraumtemperatur" },
+      "estimated_filament_length": { "name": "Filamentverbrauch (Länge)" },
+      "estimated_filament_weight": { "name": "Filamentverbrauch (Gewicht)" },
+      "filament_type": { "name": "Filamenttyp" },
+      "print_speed": { "name": "Druckgeschwindigkeit" },
+      "print_duration": { "name": "Druckdauer" },
+      "total_print_time": { "name": "Druckzeit insgesamt" },
+      "total_filament_used": { "name": "Filamentverbrauch insgesamt" },
+      "tvoc": { "name": "Luftqualität (TVOC)" },
+      "error_code": { "name": "Fehlercode" }
+    },
+    "binary_sensor": {
+      "printing": { "name": "Druckt" },
+      "paused": { "name": "Pausiert" },
+      "door": { "name": "Tür" },
+      "problem": { "name": "Problem" },
+      "camera_available": { "name": "Kamera verfügbar" }
+    },
+    "button": {
+      "pause_print": { "name": "Druck pausieren" },
+      "resume_print": { "name": "Druck fortsetzen" },
+      "cancel_print": { "name": "Druck abbrechen" },
+      "clear_platform": { "name": "Druckplattform freigeben" },
+      "home_axes": { "name": "Achsen referenzieren" },
+      "refresh_camera": { "name": "Kamerastream aktualisieren" }
+    },
+    "switch": {
+      "led": { "name": "Beleuchtung" },
+      "internal_filtration": { "name": "Filterung" }
+    },
+    "camera": {
+      "camera": { "name": "Kamera" }
+    }
+  }
+}

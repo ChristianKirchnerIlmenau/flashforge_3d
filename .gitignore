@@ -19,14 +19,14 @@ build/
 .eggs/
 wheels/
 
-# Виртуальные окружения
+# Virtuelle Umgebungen
 .venv/
 venv/
 env/
 ENV/
 .python-version
 
-# --- Инструменты ---
+# --- Werkzeuge ---
 .ruff_cache/
 .mypy_cache/
 .dmypy.json
@@ -38,7 +38,7 @@ coverage.xml
 .tox/
 .nox/
 
-# --- Редакторы / IDE ---
+# --- Editoren / IDEs ---
 .vscode/
 .idea/
 *.swp
@@ -47,8 +47,8 @@ coverage.xml
 .project
 .pydevproject
 
-# --- Home Assistant (локальные стенды и секреты) ---
-# Локальная конфигурация HA для тестирования интеграции
+# --- Home Assistant (lokale Testumgebungen und Geheimnisse) ---
+# Lokale Home-Assistant-Konfiguration zum Testen der Integration
 config/
 configuration.yaml
 secrets.yaml
@@ -59,11 +59,11 @@ home-assistant_v2.db-*
 *.db-shm
 *.db-wal
 
-# Секреты и переменные окружения
+# Geheimnisse und Umgebungsvariablen
 .env
 .env.*
 *.secret
 
-# --- HACS / релизы ---
+# --- HACS / Releases ---
 *.zip
 !hacs.json
