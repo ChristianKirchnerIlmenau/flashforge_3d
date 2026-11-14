@@ -115,11 +115,21 @@ Kopiere das Verzeichnis `custom_components/flashforge_ac5` nach
 
 Die Integration bietet Texte auf Deutsch, Englisch und Russisch.
 
+> **Hinweis zum Adventurer 5M (Firmware 5.1.7-2.2.3):**
+> Aktiviere am Drucker unter **Einstellungen → Netzwerkmodus** den Schalter
+> **Nur LAN**. Ohne diesen Modus schlug die Verbindung auch mit dem richtigen
+> Prüfcode fehl. Die im selben Menü angezeigte **Drucker-ID** bzw. Geräte-ID
+> ist der Prüfcode für die Einrichtung in Home Assistant.
+>
+> Im Modus **Nur LAN** sind externe Netzwerkverbindungen und Cloud-Dienste
+> des Druckers nicht verfügbar.
+
 1. Öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen → FlashForge 3D Printer**.
 2. Fülle die Felder aus:
    * **Host / IP-Adresse** – Adresse des Druckers im lokalen Netzwerk;
    * **Seriennummer** – auf dem Druckerdisplay unter `Einstellungen → Netzwerk → LAN-Modus`;
-   * **Prüfcode** – ebenfalls dort zu finden (normalerweise acht Zeichen).
+   * **Prüfcode** – im Netzwerkmenü des Druckers zu finden, gegebenenfalls als
+     **Drucker-ID** oder Geräte-ID bezeichnet (normalerweise acht Zeichen).
 3. Weitere Einstellungen sind über **Konfigurieren** verfügbar: das
    Abfrageintervall (5–300 s, standardmäßig 20 s) und die Änderung des Prüfcodes.
 
