@@ -148,6 +148,68 @@ statt „unbekannt“ den Zustand „aus“ anzeigen.
 Über **Ändern** lassen sich IP-Adresse und Zugangsdaten ändern, ohne die
 Integration zu entfernen. Entitäten und deren Verlauf bleiben erhalten.
 
+## Optionales Dashboard
+
+Die optionale **FlashForge-Druckerkarte** zeigt Steuerungen, Druckstatus,
+Temperaturen und Filamentdaten um das große Kamerabild. Weitere Sensoren stehen
+darunter über die gesamte Breite. Auf schmalen Karten passt sich das Layout an.
+
+![Beispiel der FlashForge-Druckerkarte mit Kamera, Steuerungen und Sensoren](dashboard-example.png)
+
+Die Karte ordnet die Entitäten anhand des ausgewählten Geräts automatisch zu;
+auch umbenannte Entitäts-IDs funktionieren. Nicht vorhandene oder deaktivierte
+Entitäten werden ausgelassen. Welche Werte verfügbar sind, hängt vom
+Druckermodell und Druckzustand ab. Die Karte unterstützt Deutsch, Englisch und
+Russisch entsprechend der Home-Assistant-Sprache.
+
+### Voraussetzungen
+
+* Eine eingerichtete FlashForge-Integration in einer Version, die die
+  Druckerkarte enthält.
+* [Bubble Card](https://github.com/Clooos/Bubble-Card), installiert und als
+  Dashboard-Ressource eingebunden. Weitere Custom Cards sind nicht erforderlich.
+
+### Druckerkarte einrichten
+
+1. Starte Home Assistant nach der Installation oder Aktualisierung der
+   Integration neu. Diese stellt die JavaScript-Datei unter
+   `/flashforge_ac5/flashforge-card.js` bereit.
+2. Öffne **Einstellungen → Dashboards → Menü (⋮) → Ressourcen** und füge
+   `/flashforge_ac5/flashforge-card.js` als **JavaScript-Modul** hinzu. Lade
+   anschließend die Browserseite neu. Die Datei enthält keine Zugangsdaten und
+   ist wie andere Dashboard-Ressourcen ohne Anmeldung abrufbar.
+3. Öffne dein Dashboard im Bearbeitungsmodus und wähle **Karte hinzufügen →
+   Nach Karte → Manuell**. Gib Folgendes ein:
+
+   ```yaml
+   type: custom:flashforge-card
+   ```
+
+4. Öffne gegebenenfalls den visuellen Editor, wähle deinen FlashForge-Drucker
+   aus und speichere die Karte. Alternativ kannst du im Kartenkatalog nach
+   **FlashForge Drucker** suchen. Für mehrere Drucker lässt sich jeweils eine
+   eigene Karte hinzufügen.
+
+Bei YAML-verwalteten Dashboard-Ressourcen füge stattdessen Folgendes unter
+`lovelace.resources` in der Home-Assistant-Konfiguration hinzu und lade die
+Ressourcen neu:
+
+```yaml
+- url: /flashforge_ac5/flashforge-card.js
+  type: module
+```
+
+Die Karte erstellt kein eigenes Dashboard und ändert keine bestehenden
+Dashboards. Für Abbrechen, Plattformfreigabe und Achsenreferenzierung fordert
+sie eine Bestätigung an. Bei einer Fehlermeldung zu Bubble Card prüfe, ob deren
+Ressource geladen ist.
+
+Erscheinen nach einer Aktualisierung noch alte Inhalte, ändere die vorhandene
+Ressourcen-URL beispielsweise auf `/flashforge_ac5/flashforge-card.js?v=2` und
+lade die Seite neu. Erhöhe die Versionsnummer bei Bedarf erneut. Hinweise zum
+lokalen Test ohne Release und zu weiteren Problemen stehen in der
+[Fehlerbehebung zur Druckerkarte](TROUBLESHOOTING.md).
+
 ### Hinweis zu FlashPrint und OrcaSlicer
 
 Beim Adventurer 5M mit Firmware 5.1.7-2.2.3 funktionierte FlashPrint im Modus
@@ -187,6 +249,8 @@ die Entitäten als nicht verfügbar, statt die letzten Werte als aktuell
 auszugeben.
 
 ## Fehlerbehebung
+
+Weitere Hinweise zur Druckerkarte stehen in der [Fehlerbehebung](TROUBLESHOOTING.md).
 
 * **„Der Drucker hat die Seriennummer oder den Prüfcode abgelehnt“** – Prüfe die
   Werte im LAN-Menü des Druckers. Nach einem Firmware-Update kann sich der
