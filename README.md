@@ -164,7 +164,7 @@ Russisch entsprechend der Home-Assistant-Sprache.
 
 ### Voraussetzungen
 
-* Eine eingerichtete FlashForge-Integration ab Version **1.2.1**.
+* Eine eingerichtete FlashForge-Integration ab Version **1.2.2**.
 * [Bubble Card](https://github.com/Clooos/Bubble-Card), installiert und als
   Dashboard-Ressource eingebunden. Weitere Custom Cards sind nicht erforderlich.
 

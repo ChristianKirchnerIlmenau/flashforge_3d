@@ -2,10 +2,10 @@
 
 ## FlashForge fehlt im Kartenkatalog
 
-Ab Version **1.2.1** wird die Druckerkarte automatisch geladen. Eine manuelle
+Ab Version **1.2.2** wird die Druckerkarte automatisch geladen. Eine manuelle
 FlashForge-Ressource ist nicht erforderlich, auch nicht im YAML-Modus.
 
-1. Prüfe, dass mindestens Version 1.2.1 installiert ist und die
+1. Prüfe, dass mindestens Version 1.2.2 installiert ist und die
    FlashForge-Integration eingerichtet ist.
 2. Starte Home Assistant nach dem Update vollständig neu und lade die
    Browserseite neu.
@@ -36,7 +36,7 @@ stattdessen die gewohnte Ansicht öffnet, hat folgender Weg funktioniert:
 
 ## Karte lokal ohne neues Release testen
 
-Bei Versionen ab 1.2.1 ersetze die Datei
+Bei Versionen ab 1.2.2 ersetze die Datei
 `custom_components/flashforge_ac5/www/flashforge-card.js` direkt im
 Home-Assistant-Konfigurationsverzeichnis. Starte Home Assistant anschließend
 neu und lade die Browserseite neu. Die Integration lädt diese Datei
@@ -70,7 +70,7 @@ Prüfe beim lokalen Test, ob die aktuelle Datei unter
 die bestehende Ressourcen-URL beispielsweise auf
 `/local/flashforge-card.js?v=2` und lade die Browserseite neu. Erhöhe die
 Versionsnummer bei späteren Änderungen erneut, um eine zwischengespeicherte
-Version zu umgehen. Ab Version 1.2.1 übernimmt die Integration die
+Version zu umgehen. Ab Version 1.2.2 übernimmt die Integration die
 Versionierung ihrer Ressource selbst; entferne alte manuelle
 FlashForge-Ressourcen und teste stattdessen wie oben durch direktes Ersetzen
 der Integrationsdatei.

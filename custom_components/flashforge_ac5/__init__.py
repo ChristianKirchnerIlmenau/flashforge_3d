@@ -41,6 +41,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: FlashForgeConfigEntry) -> bool:
     """Connect to the printer and forward the platforms."""
+    await async_setup_frontend(hass)
     api = FlashForgeApi(
         host=entry.data[CONF_HOST],
         serial_number=entry.data[CONF_SERIAL_NUMBER],
