@@ -16,7 +16,14 @@ from .api import (
     FlashForgeAuthError,
     FlashForgeConnectionError,
 )
-from .const import CONF_CHECK_CODE, CONF_SERIAL_NUMBER, DEFAULT_SCAN_INTERVAL, DOMAIN, PLATFORMS
+from .const import (
+    CONF_CHECK_CODE,
+    CONF_FORCE_LED_CONTROL,
+    CONF_SERIAL_NUMBER,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    PLATFORMS,
+)
 from .coordinator import FlashForgeDataUpdateCoordinator, FlashForgeRuntimeData
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,6 +37,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: FlashForgeConfigEntry) -
         host=entry.data[CONF_HOST],
         serial_number=entry.data[CONF_SERIAL_NUMBER],
         check_code=entry.data[CONF_CHECK_CODE],
+        force_led_control=entry.options.get(CONF_FORCE_LED_CONTROL, False),
     )
 
     try:
@@ -74,6 +82,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: FlashForgeConfigEntry) 
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: FlashForgeConfigEntry) -> None:
-    """Apply option changes (polling interval) by reloading the entry."""
+    """Apply option changes by reloading the entry."""
     _LOGGER.debug("%s options updated; reloading", DOMAIN)
     await hass.config_entries.async_reload(entry.entry_id)

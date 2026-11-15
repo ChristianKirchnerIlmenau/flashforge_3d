@@ -38,6 +38,7 @@ Die Kamera kommuniziert weiterhin über unverschlüsseltes HTTP im lokalen Netzw
 | `sensor.total_print_time` / `total_filament_used` | h / m | Kumulierte Statistik |
 | `sensor.air_quality` | µg/m³ | TVOC |
 | `binary_sensor.printing`, `paused`, `problem`, `door` | binär | Schnelle Auslöser für Automatisierungen |
+| `binary_sensor.light_status` | binär | Vom Drucker gemeldeter Lichtstatus, sofern die Lichtsteuerung verfügbar ist |
 
 **Düsen bei Modellen mit mehreren Düsen (Creator 5 / Creator 5 Pro)**
 
@@ -131,7 +132,18 @@ Die Integration bietet Texte auf Deutsch, Englisch und Russisch.
    * **Prüfcode** – im Netzwerkmenü des Druckers zu finden, gegebenenfalls als
      **Drucker-ID** oder Geräte-ID bezeichnet (normalerweise acht Zeichen).
 3. Weitere Einstellungen sind über **Konfigurieren** verfügbar: das
-   Abfrageintervall (5–300 s, standardmäßig 20 s) und die Änderung des Prüfcodes.
+   Abfrageintervall (5–300 s, standardmäßig 20 s), die Änderung des Prüfcodes
+   und die manuelle Aktivierung der Lichtsteuerung.
+
+Falls der Drucker eine schaltbare Beleuchtung besitzt, aber kein Lichtschalter
+erscheint, aktiviere unter **Konfigurieren** die Option **Lichtsteuerung
+aktivieren, wenn sie nicht erkannt wird**. Danach lädt die Integration neu und
+zeigt den Schalter sowie den binären Lichtstatus an. Die Option ist standardmäßig
+ausgeschaltet und garantiert nicht, dass die Firmware die Befehle unterstützt.
+Der Lichtstatus stammt aus der regelmäßigen Druckerabfrage; nach einem
+erfolgreichen Schaltbefehl wird er erneut abgefragt.
+Wenn die Firmware keinen Lichtstatus liefert, kann die verwendete Bibliothek
+statt „unbekannt“ den Zustand „aus“ anzeigen.
 
 Über **Ändern** lassen sich IP-Adresse und Zugangsdaten ändern, ohne die
 Integration zu entfernen. Entitäten und deren Verlauf bleiben erhalten.

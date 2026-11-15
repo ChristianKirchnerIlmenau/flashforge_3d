@@ -11,6 +11,7 @@ MANUFACTURER = "FlashForge"
 
 CONF_SERIAL_NUMBER = "serial_number"
 CONF_CHECK_CODE = "check_code"
+CONF_FORCE_LED_CONTROL = "force_led_control"
 
 DEFAULT_SCAN_INTERVAL = 20
 MIN_SCAN_INTERVAL = 5

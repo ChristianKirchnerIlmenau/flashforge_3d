@@ -37,7 +37,8 @@
         "title": "FlashForge options",
         "data": {
           "check_code": "Check code (leave empty to keep the current one)",
-          "scan_interval": "Polling interval (seconds)"
+          "scan_interval": "Polling interval (seconds)",
+          "force_led_control": "Enable light control when not detected"
         }
       }
     }
@@ -88,7 +89,8 @@
       "paused": { "name": "Paused" },
       "door": { "name": "Door" },
       "problem": { "name": "Problem" },
-      "camera_available": { "name": "Camera available" }
+      "camera_available": { "name": "Camera available" },
+      "light_status": { "name": "Light status" }
     },
     "button": {
       "pause_print": { "name": "Pause print" },

@@ -62,6 +62,12 @@ BINARY_SENSORS: tuple[FlashForgeBinarySensorDescription, ...] = (
         value_fn=lambda s: s.info.has_camera,
         icon="mdi:video",
     ),
+    FlashForgeBinarySensorDescription(
+        key="light_status",
+        translation_key="light_status",
+        value_fn=lambda s: s.info.lights_on,
+        icon="mdi:lightbulb",
+    ),
 )
 
 
@@ -75,6 +81,7 @@ async def async_setup_entry(
     async_add_entities(
         FlashForgeBinarySensor(coordinator, entry, description)
         for description in BINARY_SENSORS
+        if description.key != "light_status" or entry.runtime_data.api.client.led_control
     )
 
 

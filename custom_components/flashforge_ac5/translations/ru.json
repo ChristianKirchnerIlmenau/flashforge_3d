@@ -37,7 +37,8 @@
         "title": "Параметры FlashForge",
         "data": {
           "check_code": "Код проверки (оставьте пустым, чтобы не менять)",
-          "scan_interval": "Интервал опроса (секунды)"
+          "scan_interval": "Интервал опроса (секунды)",
+          "force_led_control": "Включить управление подсветкой, если оно не обнаружено"
         }
       }
     }
@@ -88,7 +89,8 @@
       "paused": { "name": "Пауза" },
       "door": { "name": "Дверца" },
       "problem": { "name": "Проблема" },
-      "camera_available": { "name": "Камера доступна" }
+      "camera_available": { "name": "Камера доступна" },
+      "light_status": { "name": "Состояние подсветки" }
     },
     "button": {
       "pause_print": { "name": "Пауза" },

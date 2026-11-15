@@ -52,12 +52,16 @@ class FlashForgeApi:
         host: str,
         serial_number: str,
         check_code: str,
+        *,
+        force_led_control: bool = False,
     ) -> None:
         self.host = host
         self.serial_number = serial_number
         self.check_code = check_code
 
         self._client = FlashForgeClient(host, serial_number, check_code)
+        if force_led_control:
+            self._client.set_feature_overrides(led_control=True)
         self._control_ready = False
         self._control_lock = asyncio.Lock()
         self._camera_url: str = ""

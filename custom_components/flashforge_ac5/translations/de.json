@@ -37,7 +37,8 @@
         "title": "FlashForge-Optionen",
         "data": {
           "check_code": "Prüfcode (leer lassen, um den aktuellen Code beizubehalten)",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "force_led_control": "Lichtsteuerung aktivieren, wenn sie nicht erkannt wird"
         }
       }
     }
@@ -88,7 +89,8 @@
       "paused": { "name": "Pausiert" },
       "door": { "name": "Tür" },
       "problem": { "name": "Problem" },
-      "camera_available": { "name": "Kamera verfügbar" }
+      "camera_available": { "name": "Kamera verfügbar" },
+      "light_status": { "name": "Lichtstatus" }
     },
     "button": {
       "pause_print": { "name": "Druck pausieren" },

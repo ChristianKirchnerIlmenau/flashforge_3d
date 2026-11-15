@@ -24,6 +24,7 @@ from .api import (
 )
 from .const import (
     CONF_CHECK_CODE,
+    CONF_FORCE_LED_CONTROL,
     CONF_SERIAL_NUMBER,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -45,6 +46,7 @@ STEP_USER_SCHEMA = vol.Schema(
 OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Optional(CONF_CHECK_CODE): str,
+        vol.Required(CONF_FORCE_LED_CONTROL, default=False): bool,
         vol.Required("scan_interval", default=DEFAULT_SCAN_INTERVAL): vol.All(
             cv.positive_int, vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL)
         ),
@@ -165,7 +167,7 @@ class FlashForgeConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class FlashForgeOptionsFlow(OptionsFlow):
-    """Tune polling interval and rotate the check code."""
+    """Tune polling, light control and the check code."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -179,13 +181,20 @@ class FlashForgeOptionsFlow(OptionsFlow):
                 data[CONF_CHECK_CODE] = user_input[CONF_CHECK_CODE].strip()
             self.hass.config_entries.async_update_entry(entry, data=data)
             return self.async_create_entry(
-                data={"scan_interval": user_input["scan_interval"]}
+                data={
+                    "scan_interval": user_input["scan_interval"],
+                    CONF_FORCE_LED_CONTROL: user_input[CONF_FORCE_LED_CONTROL],
+                }
             )
 
         current_interval = entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA, {"scan_interval": current_interval}
+                OPTIONS_SCHEMA,
+                {
+                    "scan_interval": current_interval,
+                    CONF_FORCE_LED_CONTROL: entry.options.get(CONF_FORCE_LED_CONTROL, False),
+                },
             ),
         )
