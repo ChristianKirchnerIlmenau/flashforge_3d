@@ -1,5 +1,22 @@
 # Fehlerbehebung
 
+## FlashForge fehlt im Kartenkatalog
+
+Ab Version **1.2.1** wird die Druckerkarte automatisch geladen. Eine manuelle
+FlashForge-Ressource ist nicht erforderlich, auch nicht im YAML-Modus.
+
+1. Prüfe, dass mindestens Version 1.2.1 installiert ist und die
+   FlashForge-Integration eingerichtet ist.
+2. Starte Home Assistant nach dem Update vollständig neu und lade die
+   Browserseite neu.
+3. Suche unter **Dashboard bearbeiten → Karte hinzufügen → Nach Karte** nach
+   **FlashForge Drucker**, nicht in der automatisch erzeugten Geräteansicht.
+
+Bleibt die Karte unsichtbar oder erscheint „Custom element doesn't exist“,
+prüfe die Home-Assistant-Protokolle auf Fehler bei der Einrichtung von
+`flashforge_ac5` und die Browserkonsole auf JavaScript-Ladefehler. Bubble Card
+muss weiterhin installiert und geladen sein.
+
 ## Druckerkarte zeigt nur die normale Geräteansicht
 
 Die **FlashForge-Druckerkarte** ist eine eigene Dashboard-Karte und nicht die
@@ -18,6 +35,15 @@ stattdessen die gewohnte Ansicht öffnet, hat folgender Weg funktioniert:
    und speichere die Karte.
 
 ## Karte lokal ohne neues Release testen
+
+Bei Versionen ab 1.2.1 ersetze die Datei
+`custom_components/flashforge_ac5/www/flashforge-card.js` direkt im
+Home-Assistant-Konfigurationsverzeichnis. Starte Home Assistant anschließend
+neu und lade die Browserseite neu. Die Integration lädt diese Datei
+automatisch; füge keine zusätzliche Testressource hinzu.
+
+Der folgende Weg über eine separate lokale Ressource gilt nur für ältere
+Versionen ohne automatisches Laden:
 
 1. Kopiere den Inhalt von
    [flashforge-card.js](custom_components/flashforge_ac5/www/flashforge-card.js)
@@ -44,5 +70,7 @@ Prüfe beim lokalen Test, ob die aktuelle Datei unter
 die bestehende Ressourcen-URL beispielsweise auf
 `/local/flashforge-card.js?v=2` und lade die Browserseite neu. Erhöhe die
 Versionsnummer bei späteren Änderungen erneut, um eine zwischengespeicherte
-Version zu umgehen. Für die von der Integration bereitgestellte Ressource
-funktioniert der Versionsparameter ebenso.
+Version zu umgehen. Ab Version 1.2.1 übernimmt die Integration die
+Versionierung ihrer Ressource selbst; entferne alte manuelle
+FlashForge-Ressourcen und teste stattdessen wie oben durch direktes Ersetzen
+der Integrationsdatei.

@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from pathlib import Path
 
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
@@ -28,6 +26,7 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import FlashForgeDataUpdateCoordinator, FlashForgeRuntimeData
+from .frontend import async_setup_frontend
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,15 +35,7 @@ type FlashForgeConfigEntry = ConfigEntry[FlashForgeRuntimeData]
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Make the optional dashboard card available as a frontend resource."""
-    await hass.http.async_register_static_paths(
-        [
-            StaticPathConfig(
-                f"/{DOMAIN}/flashforge-card.js",
-                str(Path(__file__).parent / "www" / "flashforge-card.js"),
-                False,
-            )
-        ]
-    )
+    await async_setup_frontend(hass)
     return True
 
 

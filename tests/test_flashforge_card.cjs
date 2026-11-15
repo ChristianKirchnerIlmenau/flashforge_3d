@@ -20,7 +20,10 @@ class Element {
 
 const definitions = new Map([["bubble-card", class {}]]);
 const customElements = {
-  define: (name, value) => definitions.set(name, value),
+  define: (name, value) => {
+    if (definitions.has(name)) throw new Error(`Already registered: ${name}`);
+    definitions.set(name, value);
+  },
   get: (name) => definitions.get(name),
   whenDefined: () => Promise.resolve(),
 };
@@ -32,7 +35,21 @@ const context = vm.createContext({ HTMLElement: Element, customElements, documen
   constructor(type, options) { this.type = type; Object.assign(this, options); }
 } });
 const source = readFileSync(path.join(__dirname, "../custom_components/flashforge_ac5/www/flashforge-card.js"), "utf8");
-vm.runInContext(source, context);
+function loadCardModule() {
+  vm.runInContext(`(function () { ${source}\n})();`, context);
+}
+loadCardModule();
+
+test("registers in the card picker and tolerates an existing manual resource", () => {
+  const original = definitions.get("flashforge-card");
+  loadCardModule();
+  assert.equal(definitions.get("flashforge-card"), original);
+  assert.equal(typeof original.getConfigElement, "function");
+  assert.equal(typeof original.getStubConfig, "function");
+  const catalogEntries = window.customCards.filter((card) => card.type === "flashforge-card");
+  assert.equal(catalogEntries.length, 1);
+  assert.equal(catalogEntries[0].name, "FlashForge Drucker");
+});
 
 function fixture() {
   const devices = [

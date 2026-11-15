@@ -451,11 +451,17 @@ class FlashForgeCard extends HTMLElement {
   }
 }
 
-customElements.define("flashforge-card-editor", FlashForgeCardEditor);
-customElements.define("flashforge-card", FlashForgeCard);
+if (!customElements.get("flashforge-card-editor")) {
+  customElements.define("flashforge-card-editor", FlashForgeCardEditor);
+}
+if (!customElements.get("flashforge-card")) {
+  customElements.define("flashforge-card", FlashForgeCard);
+}
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "flashforge-card",
-  name: "FlashForge Drucker",
-  description: "Kamera, Sensoren und Steuerung eines FlashForge-Druckers.",
-});
+if (!window.customCards.some((card) => card.type === "flashforge-card")) {
+  window.customCards.push({
+    type: "flashforge-card",
+    name: "FlashForge Drucker",
+    description: "Kamera, Sensoren und Steuerung eines FlashForge-Druckers.",
+  });
+}
